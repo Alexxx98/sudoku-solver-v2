@@ -1,7 +1,8 @@
 import pygame
+import threading
+import time
 from settings import WIDTH, HEIGHT, FPS, WHITE, BLACK, BLUE, DARK_BLUE
 from models import Field
-import time
 
 
 pygame.init()
@@ -74,8 +75,7 @@ def main():
 
                 fields_length = len(fields_to_solve)
                 index = 0
-                while index < fields_length:
-                    index = solve(index, fields_to_solve, fields_length)
+                run_solve_process(index, fields_to_solve, fields_length)
 
             # Highlight the rectangle and wait for the user input
             if event.type == pygame.MOUSEBUTTONDOWN:
@@ -211,10 +211,7 @@ def hide_number(rectangle):
         pygame.Rect(rectangle),
     )
 
-
 def solve(index: int, fields_to_solve: list, fields_length: int):
-    pygame.display.flip()
-
     if index > fields_length - 1:
         return
 
@@ -240,11 +237,22 @@ def solve(index: int, fields_to_solve: list, fields_length: int):
             board[field_pos[0]][field_pos[1]] = value
             hide_number(rectangle)
             display_number(value, (x + field_width // 3, y + field_height // 3))
+            pygame.display.update(rectangle)
             return index + 1
 
     board[field_pos[0]][field_pos[1]] = 0
     hide_number(rectangle)
+    pygame.display.update(rectangle)
     return index - 1
+
+
+def run_solve(index, fields_to_solve, fields_length):
+    while index < fields_length:
+        index = solve(index, fields_to_solve, fields_length)
+
+
+def run_solve_process(index, fields_to_solve, fields_length):
+    threading.Thread(target=run_solve, args=(index, fields_to_solve, fields_length)).start()
 
 
 if __name__ == "__main__":
